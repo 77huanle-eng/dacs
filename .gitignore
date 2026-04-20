@@ -2,3 +2,8 @@
 .vscode/
 *.log
 Thumbs.db
+
+backend/.env
+backend/.env.local
+backend/storage/logs/*.log
+backend/public/uploads/

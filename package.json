@@ -1,0 +1,11 @@
+{
+  "name": "viet-horizon-travel-ui",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/logic.test.mjs",
+    "test:watch": "node --watch tests/logic.test.mjs",
+    "check:main": "node --check assets/js/main.js"
+  }
+}
