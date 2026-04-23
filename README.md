@@ -72,7 +72,7 @@ Nếu project nằm ở `C:\xampp\htdocs\DACS2`:
 - `http://localhost/DACS2/`
 
 ## Deploy online
-Xem hướng dẫn triển khai cPanel/GitHub/MySQL trong `DEPLOY.md`.
+Xem hướng dẫn triển khai cPanel/GitHub/MySQL trong `DEPLOY.md`. Nếu dùng hosting iNET cho `77huanle.id.vn`, xem thêm `DEPLOY_INET.md`.
 
 Ghi chú production:
 - API mặc định trên domain thật sẽ ưu tiên `https://your-domain.com/backend/public/api`.
@@ -140,3 +140,4 @@ Và bổ sung cột metadata cho bài viết:
 ```bash
 C:\xampp\mysql\bin\mysql.exe -uroot viet_horizon_travel < backend\database\migrate_posts_metadata.sql
 ```
+
