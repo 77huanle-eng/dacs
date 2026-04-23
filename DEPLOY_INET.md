@@ -119,24 +119,44 @@ Trong cPanel/iNET:
 3. Import file:
 
 ```text
-backend/database/schema.sql
+backend/database/schema_hosting.sql
 ```
 
 4. Import tiep:
 
 ```text
-backend/database/seed.sql
+backend/database/seed_hosting.sql
 ```
 
 5. Neu database da co tu ban cu, can import them migration phu hop:
 
 ```text
-backend/database/migrate_security_media_profile.sql
-backend/database/migrate_posts_metadata.sql
-backend/database/fix_bad_utf8_data.sql
+backend/database/migrate_security_media_profile_hosting.sql
+backend/database/migrate_posts_metadata_hosting.sql
+backend/database/fix_bad_utf8_data_hosting.sql
 ```
 
 Khong nen import `seed_1000.sql` tren hosting that neu database hosting nho. File nay chi nen dung khi can test load/pagination.
+
+
+## Loi #1044 khi import SQL
+
+Neu phpMyAdmin bao loi:
+
+```text
+#1044 - Access denied ... to database 'viet_horizon_travel'
+```
+
+Nguyen nhan: hosting shared da tao san database, user MySQL khong co quyen `CREATE DATABASE` va khong duoc `USE viet_horizon_travel`.
+
+Cach xu ly: trong phpMyAdmin, chon database `zkjlpwjhosting_huanleidvn` o cot trai, sau do import cac file hosting-safe:
+
+```text
+backend/database/schema_hosting.sql
+backend/database/seed_hosting.sql
+```
+
+Khong import `schema.sql`/`seed.sql` goc tren hosting iNET neu chung con dong `CREATE DATABASE` hoac `USE viet_horizon_travel`.
 
 ## 7. Tao file backend/.env production
 
@@ -393,3 +413,4 @@ Neu van goi localhost, chen `window.__VHT_API_BASE__` nhu muc 8.
 - [ ] `APP_DEBUG=false`.
 - [ ] SSL dang hoat dong.
 - [ ] Da doi mat khau/secret mac dinh neu can.
+

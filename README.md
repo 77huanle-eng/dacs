@@ -75,6 +75,7 @@ Nếu project nằm ở `C:\xampp\htdocs\DACS2`:
 Xem hướng dẫn triển khai cPanel/GitHub/MySQL trong `DEPLOY.md`. Nếu dùng hosting iNET cho `77huanle.id.vn`, xem thêm `DEPLOY_INET.md`.
 
 Ghi chú production:
+- Trên shared hosting/cPanel, import `backend/database/schema_hosting.sql` và `backend/database/seed_hosting.sql` thay cho file gốc nếu user DB không có quyền CREATE DATABASE.
 - API mặc định trên domain thật sẽ ưu tiên `https://your-domain.com/backend/public/api`.
 - Có thể cấu hình rõ hơn bằng `window.__VHT_API_BASE__` trước khi load `assets/js/main.js`.
 - Không commit `backend/.env` production lên GitHub.
@@ -140,4 +141,6 @@ Và bổ sung cột metadata cho bài viết:
 ```bash
 C:\xampp\mysql\bin\mysql.exe -uroot viet_horizon_travel < backend\database\migrate_posts_metadata.sql
 ```
+
+
 
