@@ -71,10 +71,19 @@ Health check:
 Nếu project nằm ở `C:\xampp\htdocs\DACS2`:
 - `http://localhost/DACS2/`
 
+## Deploy online
+Xem hướng dẫn triển khai cPanel/GitHub/MySQL trong `DEPLOY.md`.
+
+Ghi chú production:
+- API mặc định trên domain thật sẽ ưu tiên `https://your-domain.com/backend/public/api`.
+- Có thể cấu hình rõ hơn bằng `window.__VHT_API_BASE__` trước khi load `assets/js/main.js`.
+- Không commit `backend/.env` production lên GitHub.
+- Sau deploy, mở DevTools Network để chắc chắn frontend không còn gọi `localhost`.
+
 Frontend sẽ gọi API base theo thứ tự ưu tiên:
 1. `window.__VHT_API_BASE__`
 2. `localStorage.vh_api_base`
-3. auto-fallback (`/backend/public/api`, `http://localhost:8080/api`)
+3. auto-fallback (`/backend/public/api`, `/api`; `http://localhost:8080/api` chỉ dùng khi chạy localhost)
 
 ## Tài khoản seed (mật khẩu: `123456`)
 - `admin@viethorizon.vn`

@@ -66,15 +66,19 @@ function buildBaseCandidates(initialBase) {
 
   if (typeof window !== "undefined" && window.location) {
     const { origin, pathname } = window.location;
+    const host = String(window.location.hostname || "").toLowerCase();
+    const isLocal = host === "localhost" || host === "127.0.0.1";
     const segments = pathname.split("/").filter(Boolean);
     const projectRoot = segments.length > 0 ? `${origin}/${segments[0]}` : origin;
 
     push(`${origin}/backend/public/api`);
     push(`${projectRoot}/backend/public/api`);
     push(`${origin}/api`);
-  }
 
-  push("http://localhost:8080/api");
+    if (isLocal) {
+      push("http://localhost:8080/api");
+    }
+  }
 
   return [...new Set(candidates)];
 }

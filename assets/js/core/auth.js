@@ -148,5 +148,18 @@ export function setDevRole(role) {
 }
 
 export function getApiBase() {
-  return window.__VHT_API_BASE__ || localStorage.getItem(LS_KEYS.apiBase) || DEFAULTS.apiBase;
+  if (window.__VHT_API_BASE__) return window.__VHT_API_BASE__;
+
+  const storedBase = localStorage.getItem(LS_KEYS.apiBase);
+  if (storedBase) return storedBase;
+
+  if (typeof window !== "undefined" && window.location) {
+    const host = String(window.location.hostname || "").toLowerCase();
+    const isLocal = host === "localhost" || host === "127.0.0.1";
+    if (!isLocal && window.location.origin) {
+      return `${window.location.origin}/backend/public/api`;
+    }
+  }
+
+  return DEFAULTS.apiBase;
 }
