@@ -3,6 +3,18 @@ import { apiDelete, apiGet, apiGetBlob, apiPost, apiPut, createBooking, forgotPa
 import { getApiBase, getCurrentRole, getCurrentUser, isLoggedIn } from "../core/auth.js";
 import { showToast } from "../core/ui.js";
 import { LS_KEYS as CORE_LS_KEYS } from "../core/constants.js";
+import { initAuthPages as initSharedAuthPages } from "./shared/auth-pages.js";
+import {
+  initAdminPostFormPage as initSharedAdminPostFormPage,
+  initAdminPromotionFormPage as initSharedAdminPromotionFormPage,
+  initAdminTourFormPage as initSharedAdminTourFormPage,
+  initProfileEditPage as initSharedProfileEditPage,
+  initProviderBookingsPage as initSharedProviderBookingsPage,
+  initProviderProfilePage as initSharedProviderProfilePage,
+  initProviderPromotionFormPage as initSharedProviderPromotionFormPage,
+  initProviderServicesPage as initSharedProviderServicesPage,
+  initProviderTourFormPage as initSharedProviderTourFormPage
+} from "./shared/form-pages.js";
 import { initBookingActions, initBookingHistoryActions, initContactActions, initHomeActions, initPaymentActions } from "./shared/public-actions.js";
 import { clearStatusSlot, ensureStatusSlot, renderStatusMessage, withPendingButton } from "./shared/ui-state.js";
 export function initLegacyApp() {
@@ -96,8 +108,7 @@ export function initLegacyApp() {
     isLocalHost &&
     (
       (typeof window !== "undefined" && window.__VHT_ALLOW_LOCAL_FALLBACK__ === true) ||
-      (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("allowFallback") === "1") ||
-      sessionStorage.getItem("vh_allow_local_fallback") === "1"
+      (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("allowFallback") === "1")
     );
 
   const vnd = (value) =>
@@ -1485,9 +1496,17 @@ export function initLegacyApp() {
   const downloadInvoicePdf = async (booking) => {
     const invoiceRecord = getInvoiceForBooking(booking);
     const invoiceId = Number(invoiceRecord?.invoiceId || booking?.invoiceId || 0);
+    const bookingCode = String(booking?.code || invoiceRecord?.bookingCode || "");
 
     if (!invoiceId) {
       showToast("Hóa đơn chưa sẵn sàng để tải.", "warning");
+      return;
+    }
+
+    if (bookingCode && !page.startsWith("admin-") && !page.startsWith("provider-")) {
+      const printUrl = addQuery(routes.invoice, { code: bookingCode, print: 1, export: "pdf" });
+      window.open(printUrl, "_blank", "noopener,noreferrer");
+      showToast("Đã mở hóa đơn ở chế độ in PDF Unicode.", "info");
       return;
     }
 
@@ -4155,6 +4174,19 @@ export function initLegacyApp() {
   };
 
   const initAuthPages = () => {
+    return initSharedAuthPages({
+      routes,
+      showToast,
+      loginWithApi,
+      getCurrentRole,
+      registerWithApi,
+      forgotPasswordWithApi,
+      apiPost,
+      ensureStatusSlot,
+      renderStatusMessage,
+      clearStatusSlot,
+      withPendingButton
+    });
     document.getElementById("loginForm")?.addEventListener("submit", async (event) => {
       event.preventDefault();
       const form = event.target;
@@ -4289,6 +4321,20 @@ export function initLegacyApp() {
   };
 
   const initProfileEditPage = () => {
+    return initSharedProfileEditPage({
+      routes,
+      profileState,
+      writeLS,
+      storageKeys: LS_KEYS,
+      apiPut,
+      apiPost,
+      logoutWithApi,
+      showToast,
+      ensureStatusSlot,
+      renderStatusMessage,
+      clearStatusSlot,
+      withPendingButton
+    });
     const form = document.getElementById("profileEditForm");
     if (!form) return;
 
@@ -4475,7 +4521,23 @@ export function initLegacyApp() {
     initContactActions({ apiPost, showToast });
   };
 
+  const initInvoicePage = () => {
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("print") !== "1") return;
+
+    setTimeout(() => {
+      window.print();
+    }, 400);
+  };
+
   const initProviderBookingsPage = () => {
+    return initSharedProviderBookingsPage({
+      db,
+      getTourById,
+      vnd,
+      dateVN,
+      statusBadge
+    });
     const drawerBody = document.getElementById("providerBookingDrawerBody");
     if (!drawerBody) return;
 
@@ -4503,6 +4565,20 @@ export function initLegacyApp() {
   };
 
   const initProviderProfilePage = () => {
+    return initSharedProviderProfilePage({
+      db,
+      apiPut,
+      mapProviderFromApi,
+      withProviderScopePayload,
+      setActiveProviderId: (value) => {
+        if (value) activeProviderId = String(value);
+      },
+      showToast,
+      ensureStatusSlot,
+      renderStatusMessage,
+      clearStatusSlot,
+      withPendingButton
+    });
     const form = document.getElementById("providerProfileForm");
     if (!form) return;
     const statusSlot = ensureStatusSlot(form, { position: "before", className: "mb-3" });
@@ -4558,6 +4634,28 @@ export function initLegacyApp() {
   };
 
   const initProviderTourFormPage = () => {
+    return initSharedProviderTourFormPage({
+      page,
+      routes,
+      db,
+      normalizeNumber,
+      apiGet,
+      apiPost,
+      apiPut,
+      todayISO,
+      mapTourFromApi,
+      upsertTour,
+      withProviderScopePayload,
+      withProviderScopeParams,
+      withProviderScopeFormData,
+      syncCategoriesFromTours,
+      refreshAdminRows,
+      showToast,
+      ensureStatusSlot,
+      renderStatusMessage,
+      clearStatusSlot,
+      withPendingButton
+    });
     const form = document.getElementById("providerTourForm");
     if (!form) return;
 
@@ -4678,6 +4776,20 @@ export function initLegacyApp() {
   };
 
   const initProviderServicesPage = () => {
+    return initSharedProviderServicesPage({
+      db,
+      activeProviderId,
+      apiPost,
+      withProviderScopePayload,
+      vnd,
+      showToast,
+      ensureStatusSlot,
+      renderStatusMessage,
+      clearStatusSlot,
+      withPendingButton,
+      renderCurrentPage,
+      initPageBehaviors
+    });
     const form = document.getElementById("providerServiceForm");
     if (!form) return;
     const statusSlot = ensureStatusSlot(form, { position: "before", className: "mb-3" });
@@ -4752,6 +4864,26 @@ export function initLegacyApp() {
   };
 
   const initProviderPromotionFormPage = () => {
+    return initSharedProviderPromotionFormPage({
+      page,
+      routes,
+      db,
+      apiGet,
+      apiPost,
+      apiPut,
+      todayISO,
+      withProviderScopePayload,
+      withProviderScopeFormData,
+      mapPromotionFromApi,
+      showToast,
+      ensureStatusSlot,
+      renderStatusMessage,
+      clearStatusSlot,
+      withPendingButton,
+      normalizePromotionType,
+      normalizeNumber,
+      DEFAULT_POST_THUMBNAIL
+    });
     const form = document.getElementById("providerPromotionPageForm");
     if (!form) return;
     const statusSlot = ensureStatusSlot(form, { position: "before", className: "mb-3" });
@@ -4895,6 +5027,24 @@ export function initLegacyApp() {
   };
 
   const initAdminTourFormPage = () => {
+    return initSharedAdminTourFormPage({
+      page,
+      routes,
+      db,
+      apiGet,
+      apiPost,
+      apiPut,
+      todayISO,
+      normalizeNumber,
+      mapTourFromApi,
+      syncCategoriesFromTours,
+      refreshAdminRows,
+      showToast,
+      ensureStatusSlot,
+      renderStatusMessage,
+      clearStatusSlot,
+      withPendingButton
+    });
     const form = document.getElementById("adminTourPageForm");
     if (!form) return;
 
@@ -5100,6 +5250,24 @@ export function initLegacyApp() {
   };
 
   const initAdminPostFormPage = () => {
+    return initSharedAdminPostFormPage({
+      page,
+      routes,
+      db,
+      apiGet,
+      apiPost,
+      apiPut,
+      parseListField,
+      mapPostFromApi,
+      refreshAdminRows,
+      toBackendPostStatus,
+      DEFAULT_POST_THUMBNAIL,
+      showToast,
+      ensureStatusSlot,
+      renderStatusMessage,
+      clearStatusSlot,
+      withPendingButton
+    });
     const form = document.getElementById("adminPostPageForm");
     if (!form) return;
     const statusSlot = ensureStatusSlot(form, { position: "before", className: "mb-3" });
@@ -5261,6 +5429,24 @@ export function initLegacyApp() {
   };
 
   const initAdminPromotionFormPage = () => {
+    return initSharedAdminPromotionFormPage({
+      page,
+      routes,
+      db,
+      apiGet,
+      apiPost,
+      apiPut,
+      todayISO,
+      normalizeNumber,
+      normalizePromotionType,
+      mapPromotionFromApi,
+      DEFAULT_POST_THUMBNAIL,
+      showToast,
+      ensureStatusSlot,
+      renderStatusMessage,
+      clearStatusSlot,
+      withPendingButton
+    });
     const form = document.getElementById("adminPromotionPageForm");
     if (!form) return;
     const statusSlot = ensureStatusSlot(form, { position: "before", className: "mb-3" });
@@ -6904,6 +7090,7 @@ export function initLegacyApp() {
     if (page === "booking") initBookingPage();
     if (page === "payment") initPaymentPage();
     if (page === "booking-history") initBookingHistoryPage();
+    if (page === "invoice") initInvoicePage();
     if (page === "contact") initContactPage();
     if (page === "provider-profile") initProviderProfilePage();
     if (["provider-tour-form", "provider-tour-edit"].includes(page)) initProviderTourFormPage();

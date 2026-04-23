@@ -42,9 +42,9 @@ class AdminController extends Controller
         $payload = $request->input();
         $this->validatePayload($payload, [
             'role_id' => 'required|integer',
-            'full_name' => 'required|min:2|max:120',
+            'full_name' => 'required|string|min:2|max:120',
             'email' => 'required|email|max:180',
-            'password' => 'required|min:6|max:255',
+            'password' => 'required|string|min:6|max:255',
             'status' => 'in:active,inactive,blocked',
             'phone' => 'phone|max:30',
         ], 'Dữ liệu người dùng không hợp lệ.');
@@ -62,9 +62,9 @@ class AdminController extends Controller
         $payload = $request->input();
         $this->validatePayload($payload, [
             'role_id' => 'integer',
-            'full_name' => 'min:2|max:120',
+            'full_name' => 'string|min:2|max:120',
             'email' => 'email|max:180',
-            'password' => 'min:6|max:255',
+            'password' => 'string|min:6|max:255',
             'status' => 'in:active,inactive,blocked',
             'phone' => 'phone|max:30',
         ], 'Dữ liệu cập nhật người dùng không hợp lệ.');
@@ -87,8 +87,8 @@ class AdminController extends Controller
     {
         $payload = $request->input();
         $this->validatePayload($payload, [
-            'name' => 'required|min:2|max:50',
-            'description' => 'max:255',
+            'name' => 'required|string|min:2|max:50',
+            'description' => 'string|max:255',
         ], 'Dữ liệu vai trò không hợp lệ.');
 
         $this->created($this->admin->createRole($payload), 'Tạo role thành công.');
@@ -98,8 +98,8 @@ class AdminController extends Controller
     {
         $payload = $request->input();
         $this->validatePayload($payload, [
-            'name' => 'min:2|max:50',
-            'description' => 'max:255',
+            'name' => 'string|min:2|max:50',
+            'description' => 'string|max:255',
         ], 'Dữ liệu cập nhật vai trò không hợp lệ.');
 
         $this->ok($this->admin->updateRole($this->routeId($params), $payload), 'Cập nhật role thành công.');
@@ -239,7 +239,7 @@ class AdminController extends Controller
         $this->validatePayload($payload, [
             'booking_status' => 'in:pending,confirmed,completed,cancelled',
             'payment_status' => 'in:unpaid,pending,paid,failed,refunded',
-            'note' => 'max:2000',
+            'note' => 'string|max:2000',
         ], 'Dữ liệu booking không hợp lệ.');
 
         $this->ok($this->admin->updateBooking($this->routeId($params), $payload), 'Cập nhật booking thành công.');
@@ -261,8 +261,8 @@ class AdminController extends Controller
         $payload = $request->input();
         $this->validatePayload($payload, [
             'payment_status' => 'in:pending,paid,failed,refunded',
-            'transaction_code' => 'max:120',
-            'payment_method' => 'max:60',
+            'transaction_code' => 'string|max:120',
+            'payment_method' => 'string|max:60',
         ], 'Dữ liệu giao dịch không hợp lệ.');
 
         $this->ok($this->admin->updatePayment($this->routeId($params), $payload), 'Cập nhật payment thành công.');
@@ -290,14 +290,14 @@ class AdminController extends Controller
         $payload = $request->input();
         $this->validatePayload($payload, [
             'title' => 'required|string|min:3|max:220',
-            'excerpt' => 'required|max:400',
-            'content' => 'required|max:40000',
-            'thumbnail' => 'max:255',
-            'category' => 'max:120',
+            'excerpt' => 'required|string|max:400',
+            'content' => 'required|string|max:40000',
+            'thumbnail' => 'string|max:255',
+            'category' => 'string|max:120',
             'tags' => 'array',
             'gallery' => 'array',
-            'meta_title' => 'max:255',
-            'meta_description' => 'max:400',
+            'meta_title' => 'string|max:255',
+            'meta_description' => 'string|max:400',
             'status' => 'in:draft,published,archived',
         ], 'Dữ liệu bài viết không hợp lệ.');
 
@@ -310,14 +310,14 @@ class AdminController extends Controller
         $payload = $request->input();
         $this->validatePayload($payload, [
             'title' => 'string|min:3|max:220',
-            'excerpt' => 'max:400',
-            'content' => 'max:40000',
-            'thumbnail' => 'max:255',
-            'category' => 'max:120',
+            'excerpt' => 'string|max:400',
+            'content' => 'string|max:40000',
+            'thumbnail' => 'string|max:255',
+            'category' => 'string|max:120',
             'tags' => 'array',
             'gallery' => 'array',
-            'meta_title' => 'max:255',
-            'meta_description' => 'max:400',
+            'meta_title' => 'string|max:255',
+            'meta_description' => 'string|max:400',
             'status' => 'in:draft,published,archived',
         ], 'Dữ liệu cập nhật bài viết không hợp lệ.');
 
@@ -333,9 +333,7 @@ class AdminController extends Controller
     public function uploadPostImage(Request $request, array $params): void
     {
         $file = $request->file('image');
-        if (!$file) {
-            throw new ApiException('Vui lòng chọn ảnh bài viết để tải lên.', 422);
-        }
+        $this->validateUploadedImage($file, 'ảnh bài viết', 8);
 
         $url = $this->mediaUpload->uploadImage($file, 'posts', 8);
         $this->created(['url' => $url], 'Tải ảnh bài viết thành công.');
@@ -362,8 +360,8 @@ class AdminController extends Controller
             'status' => 'in:active,inactive,expired',
             'start_date' => 'date',
             'end_date' => 'date|after_or_equal:start_date',
-            'description' => 'max:2000',
-            'image_url' => 'max:255',
+            'description' => 'string|max:2000',
+            'image_url' => 'string|max:255',
         ], 'Dữ liệu khuyến mãi không hợp lệ.');
 
         $this->created($this->admin->createPromotion($payload), 'Tạo promotion thành công.');
@@ -384,8 +382,8 @@ class AdminController extends Controller
             'status' => 'in:active,inactive,expired',
             'start_date' => 'date',
             'end_date' => 'date|after_or_equal:start_date',
-            'description' => 'max:2000',
-            'image_url' => 'max:255',
+            'description' => 'string|max:2000',
+            'image_url' => 'string|max:255',
         ], 'Dữ liệu cập nhật khuyến mãi không hợp lệ.');
 
         $this->ok($this->admin->updatePromotion($this->routeId($params), $payload), 'Cập nhật promotion thành công.');
@@ -400,9 +398,7 @@ class AdminController extends Controller
     public function uploadPromotionImage(Request $request, array $params): void
     {
         $file = $request->file('image');
-        if (!$file) {
-            throw new ApiException('Vui lòng chọn ảnh khuyến mãi để tải lên.', 422);
-        }
+        $this->validateUploadedImage($file, 'ảnh khuyến mãi', 8);
 
         $url = $this->mediaUpload->uploadImage($file, 'promotions', 8);
         $this->created(['url' => $url], 'Tải ảnh khuyến mãi thành công.');
@@ -440,7 +436,7 @@ class AdminController extends Controller
     public function providerRequestApprove(Request $request, array $params): void
     {
         $this->validatePayload($request->input(), [
-            'admin_note' => 'max:2000',
+            'admin_note' => 'string|max:2000',
         ], 'Ghi chú duyệt provider request không hợp lệ.');
         $note = (string) ($request->input('admin_note') ?? '');
         $this->ok($this->admin->approveProviderRequest($this->routeId($params), $note), 'Duyệt yêu cầu provider thành công.');
@@ -449,7 +445,7 @@ class AdminController extends Controller
     public function providerRequestReject(Request $request, array $params): void
     {
         $this->validatePayload($request->input(), [
-            'admin_note' => 'max:2000',
+            'admin_note' => 'string|max:2000',
         ], 'Ghi chú từ chối provider request không hợp lệ.');
         $note = (string) ($request->input('admin_note') ?? '');
         $this->ok($this->admin->rejectProviderRequest($this->routeId($params), $note), 'Từ chối yêu cầu provider thành công.');

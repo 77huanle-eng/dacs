@@ -93,10 +93,34 @@ npm run check:main
 - Đã nối thêm các flow thật:
   - user gửi yêu cầu trở thành provider từ trang hồ sơ
   - admin duyệt/từ chối `provider_requests` bằng đúng request id
-  - notifications list/read/read-all ở trang hồ sơ
+  - notifications list/read/read-all ở trang hồ sơ và topbar
   - user sửa/xóa comment và rating của chính mình tại trang chi tiết tour
 - Các thao tác quản trị quan trọng trong `legacy-app.js` không còn dùng `window.prompt()` / `window.confirm()`, đã chuyển sang modal Bootstrap đồng bộ UI.
-- Nếu backend không kết nối và **không** bật `vh_allow_local_fallback=1`, frontend sẽ hiển thị trạng thái lỗi thay vì giả dữ liệu như môi trường thật.
+- Frontend đã được tách thêm shared modules để giảm dần phụ thuộc vào monolith:
+  - `assets/js/domains/shared/ui-state.js`
+  - `assets/js/domains/shared/public-actions.js`
+  - `assets/js/domains/shared/storage-cleanup.js`
+  - `assets/js/domains/shared/notifications.js`
+- Nhiều form public/provider/admin đã có trạng thái thực hơn:
+  - loading
+  - success
+  - empty
+  - error
+- Fallback local đã bị siết chặt:
+  - chỉ hoạt động trong localhost/dev khi có cờ cho phép rõ ràng
+  - không còn tự động dùng `localStorage.vh_allow_local_fallback`
+  - các key local cũ như `vh_orders`, `vh_cancelled_codes`, `vh_allow_local_fallback` được dọn khi app boot
+- Forgot password ở môi trường dev đã trả về preview rõ hơn:
+  - `preview_available`
+  - `delivery_message`
+  - `reset_link_preview`
+- Validation backend đã được siết thêm ở nhiều endpoint write của user/provider/admin:
+  - string length
+  - enum/status
+  - date range
+  - array/string/boolean/url rule cơ bản
+- Hóa đơn PDF vẫn giữ cơ chế tải file hiện tại nhưng đã được cải thiện bố cục để dễ đọc hơn; tiếng Việt chưa đạt Unicode đầy đủ 100% vì stack hiện tại chưa dùng thư viện PDF Unicode chuyên dụng.
+- Nếu backend không kết nối và **không** bật cờ fallback dev, frontend sẽ hiển thị trạng thái lỗi thay vì giả dữ liệu như môi trường thật.
 
 ## Migration bổ sung
 Nếu DB đã tạo từ bản cũ, chạy thêm:

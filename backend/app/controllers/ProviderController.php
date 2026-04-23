@@ -32,9 +32,9 @@ class ProviderController extends Controller
             'company_name' => 'required|string|min:2|max:160',
             'contact_email' => 'email|max:180',
             'contact_phone' => 'phone|max:30',
-            'address' => 'max:255',
-            'tax_code' => 'max:80',
-            'description' => 'max:2000',
+            'address' => 'string|max:255',
+            'tax_code' => 'string|max:80',
+            'description' => 'string|max:2000',
         ], 'Dữ liệu đăng ký provider không hợp lệ.');
 
         $data = $this->service->submitRequest((int) $user['id'], $payload);
@@ -62,11 +62,11 @@ class ProviderController extends Controller
             'company_name' => 'string|min:2|max:160',
             'contact_email' => 'email|max:180',
             'contact_phone' => 'phone|max:30',
-            'address' => 'max:255',
-            'tax_code' => 'max:80',
+            'address' => 'string|max:255',
+            'tax_code' => 'string|max:80',
             'status' => 'in:pending,active,inactive,rejected',
-            'description' => 'max:2000',
-            'support_policy' => 'max:2000',
+            'description' => 'string|max:2000',
+            'support_policy' => 'string|max:2000',
         ], 'Dữ liệu hồ sơ provider không hợp lệ.');
 
         $user = $request->attribute('auth_user');
@@ -187,9 +187,7 @@ class ProviderController extends Controller
         $tourId = (int) ($params['id'] ?? 0);
         $file = $request->file('image');
 
-        if (!$file) {
-            throw new ApiException('Vui lòng chọn file ảnh để tải lên.', 422);
-        }
+        $this->validateUploadedImage($file, 'ảnh tour', 8);
 
         $setThumbnail = filter_var($request->input('set_thumbnail', true), FILTER_VALIDATE_BOOL);
         $data = $this->service->uploadTourImage($providerId, $tourId, $file, $setThumbnail);
@@ -237,8 +235,8 @@ class ProviderController extends Controller
         $this->validatePayload($payload, [
             'tour_id' => 'required|integer',
             'service_name' => 'required|string|min:2|max:180',
-            'service_type' => 'max:80',
-            'description' => 'max:1000',
+            'service_type' => 'string|max:80',
+            'description' => 'string|max:1000',
         ], 'Dữ liệu dịch vụ không hợp lệ.');
 
         $providerId = $this->resolveProviderId($request);
@@ -251,8 +249,8 @@ class ProviderController extends Controller
         $payload = $request->input();
         $this->validatePayload($payload, [
             'service_name' => 'string|min:2|max:180',
-            'service_type' => 'max:80',
-            'description' => 'max:1000',
+            'service_type' => 'string|max:80',
+            'description' => 'string|max:1000',
         ], 'Dữ liệu cập nhật dịch vụ không hợp lệ.');
 
         $providerId = $this->resolveProviderId($request);
@@ -288,8 +286,8 @@ class ProviderController extends Controller
             'status' => 'in:active,inactive,expired',
             'start_date' => 'date',
             'end_date' => 'date|after_or_equal:start_date',
-            'description' => 'max:2000',
-            'image_url' => 'max:255',
+            'description' => 'string|max:2000',
+            'image_url' => 'string|max:255',
         ], 'Dữ liệu khuyến mãi không hợp lệ.');
 
         $providerId = $this->resolveProviderId($request);
@@ -311,8 +309,8 @@ class ProviderController extends Controller
             'status' => 'in:active,inactive,expired',
             'start_date' => 'date',
             'end_date' => 'date|after_or_equal:start_date',
-            'description' => 'max:2000',
-            'image_url' => 'max:255',
+            'description' => 'string|max:2000',
+            'image_url' => 'string|max:255',
         ], 'Dữ liệu cập nhật khuyến mãi không hợp lệ.');
 
         $providerId = $this->resolveProviderId($request);
@@ -331,9 +329,7 @@ class ProviderController extends Controller
     {
         $this->resolveProviderId($request);
         $file = $request->file('image');
-        if (!$file) {
-            throw new ApiException('Vui lòng chọn ảnh khuyến mãi để tải lên.', 422);
-        }
+        $this->validateUploadedImage($file, 'ảnh khuyến mãi', 8);
 
         $url = $this->mediaUpload->uploadImage($file, 'promotions', 8);
         $this->created(['url' => $url], 'Tải ảnh khuyến mãi thành công.');
@@ -352,7 +348,7 @@ class ProviderController extends Controller
     {
         $payload = $request->input();
         $this->validatePayload($payload, [
-            'message' => 'required|min:3|max:1000',
+            'message' => 'required|string|min:3|max:1000',
         ], 'Nội dung phản hồi không hợp lệ.');
 
         $providerId = $this->resolveProviderId($request);

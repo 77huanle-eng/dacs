@@ -21,11 +21,11 @@ class ContactController extends Controller
     {
         $payload = $request->input();
         $this->validatePayload($payload, [
-            'full_name' => 'required|min:2|max:120',
+            'full_name' => 'required|string|min:2|max:120',
             'email' => 'required|email|max:180',
             'phone' => 'phone|max:30',
-            'subject' => 'required|min:3|max:160',
-            'message' => 'required|min:10|max:3000',
+            'subject' => 'required|string|min:3|max:160',
+            'message' => 'required|string|min:10|max:3000',
         ], 'Dữ liệu liên hệ không hợp lệ.');
 
         $id = $this->contacts->create([

@@ -29,7 +29,7 @@ class RatingController extends Controller
         $this->validatePayload($payload, [
             'tour_id' => 'required|integer|min_num:1',
             'score' => 'required|integer|min_num:1|max_num:5',
-            'review' => 'max:2000',
+            'review' => 'string|max:2000',
         ], 'Dữ liệu đánh giá không hợp lệ.');
 
         $tourId = (int) ($payload['tour_id'] ?? 0);
@@ -84,7 +84,7 @@ class RatingController extends Controller
         $payload = $request->input();
         $this->validatePayload($payload, [
             'score' => 'integer|min_num:1|max_num:5',
-            'review' => 'max:2000',
+            'review' => 'string|max:2000',
         ], 'Dữ liệu cập nhật đánh giá không hợp lệ.');
 
         $score = (int) ($payload['score'] ?? $rating['score']);

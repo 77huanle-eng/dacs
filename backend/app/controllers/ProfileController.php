@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Core\ApiException;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Models\Tour;
@@ -39,11 +38,11 @@ class ProfileController extends Controller
             'full_name' => 'string|min:2|max:120',
             'email' => 'email|max:180',
             'phone' => 'phone|max:30',
-            'address' => 'max:255',
-            'city' => 'max:120',
+            'address' => 'string|max:255',
+            'city' => 'string|max:120',
             'date_of_birth' => 'date',
             'gender' => 'in:male,female,other',
-            'bio' => 'max:2000',
+            'bio' => 'string|max:2000',
         ], 'Dữ liệu hồ sơ không hợp lệ.');
 
         $data = $this->authService->updateProfile((int) $user['id'], $payload);
@@ -55,9 +54,7 @@ class ProfileController extends Controller
         $user = $request->attribute('auth_user');
         $file = $request->file('avatar');
 
-        if (!$file) {
-            throw new ApiException('Vui lòng chọn ảnh hồ sơ để tải lên.', 422);
-        }
+        $this->validateUploadedImage($file, 'ảnh hồ sơ', 5);
 
         $data = $this->authService->uploadAvatar((int) $user['id'], $file);
         $this->ok($data, 'Tải ảnh hồ sơ thành công.');

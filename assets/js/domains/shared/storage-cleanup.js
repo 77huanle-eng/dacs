@@ -8,8 +8,8 @@ export function initStorageCleanupModule() {
 
   try {
     LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    LEGACY_STORAGE_KEYS.forEach((key) => sessionStorage.removeItem(key));
   } catch (_error) {
     // Không chặn bootstrap nếu trình duyệt khóa localStorage.
   }
 }
-

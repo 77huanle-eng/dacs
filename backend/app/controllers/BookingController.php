@@ -29,8 +29,8 @@ class BookingController extends Controller
             'child_count' => 'integer|min_num:0|max_num:50',
             'total_guests' => 'integer|min_num:1|max_num:50',
             'departure_date' => 'date',
-            'promotion_code' => 'max:80',
-            'note' => 'max:2000',
+            'promotion_code' => 'string|max:80',
+            'note' => 'string|max:2000',
         ], 'Dữ liệu booking không hợp lệ.');
 
         $data = $this->bookingService->create($this->authUserId($request), $payload);
@@ -59,8 +59,8 @@ class BookingController extends Controller
     {
         $payload = $request->input();
         $this->validatePayload($payload, [
-            'code' => 'max:80',
-            'promotion_code' => 'max:80',
+            'code' => 'string|max:80',
+            'promotion_code' => 'string|max:80',
         ], 'Mã khuyến mãi không hợp lệ.');
 
         $code = (string) ($payload['code'] ?? $payload['promotion_code'] ?? '');
@@ -73,7 +73,7 @@ class BookingController extends Controller
         $payload = $request->input();
         $this->validatePayload($payload, [
             'payment_method' => 'required|in:bank_card,e_wallet,bank_transfer',
-            'transaction_code' => 'max:120',
+            'transaction_code' => 'string|max:120',
         ], 'Dữ liệu thanh toán không hợp lệ.');
 
         $data = $this->bookingService->payment($this->routeId($params), $this->authUserId($request), $payload);

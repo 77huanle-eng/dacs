@@ -25,7 +25,7 @@ class AuthController extends Controller
             'full_name' => 'required|string|min:2|max:120',
             'email' => 'required|email|max:180',
             'phone' => 'phone|max:30',
-            'password' => 'required|min:6|max:255',
+            'password' => 'required|string|min:6|max:255',
         ], 'Dữ liệu đăng ký không hợp lệ.');
 
         $result = $this->auth->register($payload);
@@ -36,8 +36,8 @@ class AuthController extends Controller
     {
         $payload = $request->input();
         $this->validatePayload($payload, [
-            'email' => 'required|email',
-            'password' => 'required|min:6',
+            'email' => 'required|email|max:180',
+            'password' => 'required|string|min:6|max:255',
         ], 'Thông tin đăng nhập không hợp lệ.');
 
         $result = $this->auth->login((string) $payload['email'], (string) $payload['password']);
@@ -69,7 +69,7 @@ class AuthController extends Controller
     public function forgotPassword(Request $request, array $params): void
     {
         $payload = $request->input();
-        $this->validatePayload($payload, ['email' => 'required|email'], 'Email không hợp lệ.');
+        $this->validatePayload($payload, ['email' => 'required|email|max:180'], 'Email không hợp lệ.');
 
         $data = $this->auth->forgotPassword((string) $payload['email']);
         $this->ok($data, 'Nếu email tồn tại trong hệ thống, liên kết đặt lại mật khẩu đã được gửi.');
@@ -79,9 +79,9 @@ class AuthController extends Controller
     {
         $payload = $request->input();
         $this->validatePayload($payload, [
-            'email' => 'required|email',
-            'token' => 'required|min:10',
-            'password' => 'required|min:6|max:255',
+            'email' => 'required|email|max:180',
+            'token' => 'required|string|min:10|max:255',
+            'password' => 'required|string|min:6|max:255',
         ], 'Dữ liệu reset password không hợp lệ.');
 
         $this->auth->resetPassword(
@@ -97,9 +97,9 @@ class AuthController extends Controller
     {
         $payload = $request->input();
         $this->validatePayload($payload, [
-            'current_password' => 'required|min:6',
-            'new_password' => 'required|min:6|max:255',
-            'confirm_password' => 'max:255',
+            'current_password' => 'required|string|min:6|max:255',
+            'new_password' => 'required|string|min:6|max:255',
+            'confirm_password' => 'string|max:255',
         ], 'Dữ liệu đổi mật khẩu không hợp lệ.');
 
         $confirmPassword = (string) ($payload['confirm_password'] ?? '');

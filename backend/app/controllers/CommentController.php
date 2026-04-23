@@ -36,7 +36,7 @@ class CommentController extends Controller
         $payload = $request->input();
         $this->validatePayload($payload, [
             'tour_id' => 'required|integer|min_num:1',
-            'content' => 'required|min:2|max:2000',
+            'content' => 'required|string|min:2|max:2000',
         ], 'Dữ liệu bình luận không hợp lệ.');
 
         $tourId = (int) ($payload['tour_id'] ?? 0);
@@ -79,7 +79,7 @@ class CommentController extends Controller
 
         $payload = $request->input();
         $this->validatePayload($payload, [
-            'content' => 'required|min:2|max:2000',
+            'content' => 'required|string|min:2|max:2000',
         ], 'Dữ liệu cập nhật bình luận không hợp lệ.');
 
         $content = trim((string) ($payload['content'] ?? ''));
