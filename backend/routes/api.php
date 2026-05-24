@@ -3,17 +3,29 @@
 declare(strict_types=1);
 
 use App\Controllers\AdminController;
+use App\Controllers\AiChatController;
+use App\Controllers\AuditLogController;
 use App\Controllers\AuthController;
+use App\Controllers\BannerController;
 use App\Controllers\BookingController;
+use App\Controllers\BookingHoldController;
 use App\Controllers\CommentController;
 use App\Controllers\ContactController;
+use App\Controllers\DepartureController;
 use App\Controllers\HealthController;
 use App\Controllers\InvoiceController;
+use App\Controllers\ItineraryController;
+use App\Controllers\LoginHistoryController;
+use App\Controllers\LoyaltyController;
 use App\Controllers\NotificationController;
+use App\Controllers\PaymentController;
+use App\Controllers\PayoutController;
 use App\Controllers\PostController;
 use App\Controllers\ProfileController;
 use App\Controllers\ProviderController;
 use App\Controllers\RatingController;
+use App\Controllers\SupportTicketController;
+use App\Controllers\TicketController;
 use App\Controllers\TourController;
 
 /** @var \App\Core\Router $router */
@@ -175,4 +187,91 @@ $router->put('/admin/comments/{id}/hide', [AdminController::class, 'hideComment'
 $router->delete('/admin/comments/{id}', [AdminController::class, 'deleteComment'], ['auth', 'role:admin']);
 
 
+// ============ REFUNDS (Admin) ============
+$router->get('/admin/refunds', [AdminController::class, 'refunds'], ['auth', 'role:admin']);
+$router->get('/admin/refunds/{id}', [AdminController::class, 'refundDetail'], ['auth', 'role:admin']);
+$router->put('/admin/refunds/{id}/approve', [AdminController::class, 'approveRefund'], ['auth', 'role:admin']);
+$router->put('/admin/refunds/{id}/process', [AdminController::class, 'processRefund'], ['auth', 'role:admin']);
+$router->put('/admin/refunds/{id}/reject', [AdminController::class, 'rejectRefund'], ['auth', 'role:admin']);
 
+// ============ PAYOUTS ============
+$router->get('/provider/payouts', [PayoutController::class, 'myPayouts'], ['auth', 'role:provider,admin']);
+$router->get('/provider/payouts/pending-revenue', [PayoutController::class, 'pendingRevenue'], ['auth', 'role:provider,admin']);
+$router->get('/admin/payouts', [PayoutController::class, 'adminList'], ['auth', 'role:admin']);
+$router->post('/admin/payouts', [PayoutController::class, 'adminCreate'], ['auth', 'role:admin']);
+$router->put('/admin/payouts/{id}/complete', [PayoutController::class, 'adminComplete'], ['auth', 'role:admin']);
+$router->put('/admin/payouts/{id}/reject', [PayoutController::class, 'adminReject'], ['auth', 'role:admin']);
+
+// ============ AUDIT LOGS ============
+$router->get('/admin/audit-logs', [AuditLogController::class, 'index'], ['auth', 'role:admin']);
+
+// ============ PROVIDER EXTRA ============
+$router->delete('/provider/tours/{id}/images/{imageId}', [ProviderController::class, 'deleteTourImage'], ['auth', 'role:provider,admin']);
+$router->post('/admin/notifications/broadcast', [NotificationController::class, 'broadcast'], ['auth', 'role:admin']);
+$router->get('/bookings/{id}/travelers', [BookingController::class, 'travelers'], ['auth']);
+$router->put('/provider/tours/{id}/images/sort', [ProviderController::class, 'updateImageSort'], ['auth', 'role:provider,admin']);
+$router->get('/provider/refunds', [ProviderController::class, 'refunds'], ['auth', 'role:provider,admin']);
+$router->get('/notifications/unread-count', [NotificationController::class, 'unreadCount'], ['auth']);
+
+// ============ DEPARTURES ============
+$router->get('/tours/{id}/departures', [DepartureController::class, 'publicList']);
+$router->get('/provider/tours/{id}/departures', [DepartureController::class, 'providerList'], ['auth', 'role:provider,admin']);
+$router->post('/provider/tours/{id}/departures', [DepartureController::class, 'providerCreate'], ['auth', 'role:provider,admin']);
+$router->put('/provider/tours/{id}/departures/{did}', [DepartureController::class, 'providerUpdate'], ['auth', 'role:provider,admin']);
+$router->delete('/provider/tours/{id}/departures/{did}', [DepartureController::class, 'providerDelete'], ['auth', 'role:provider,admin']);
+$router->get('/admin/departures', [DepartureController::class, 'adminList'], ['auth', 'role:admin']);
+
+// ============ ADMIN CONTACTS ============
+$router->get('/admin/contacts', [AdminController::class, 'contacts'], ['auth', 'role:admin']);
+$router->put('/admin/contacts/{id}', [AdminController::class, 'updateContact'], ['auth', 'role:admin']);
+
+// ============ AI CHAT ============
+$router->post('/chat', [AiChatController::class, 'chat'], ['throttle:20,1']);
+
+// ============ BANNERS ============
+$router->get('/banners', [BannerController::class, 'active']);
+$router->get('/admin/banners', [BannerController::class, 'index'], ['auth', 'role:admin']);
+$router->post('/admin/banners', [BannerController::class, 'create'], ['auth', 'role:admin']);
+$router->post('/admin/banners/upload-image', [BannerController::class, 'uploadImage'], ['auth', 'role:admin']);
+$router->put('/admin/banners/{id}', [BannerController::class, 'update'], ['auth', 'role:admin']);
+$router->delete('/admin/banners/{id}', [BannerController::class, 'delete'], ['auth', 'role:admin']);
+
+// ============ ITINERARIES ============
+$router->get('/tours/{id}/itineraries', [ItineraryController::class, 'getByTour']);
+
+// ============ SUPPORT TICKETS ============
+$router->get('/support/tickets', [SupportTicketController::class, 'myTickets'], ['auth']);
+$router->post('/support/tickets', [SupportTicketController::class, 'create'], ['auth']);
+$router->get('/support/tickets/{id}', [SupportTicketController::class, 'detail'], ['auth']);
+$router->post('/support/tickets/{id}/reply', [SupportTicketController::class, 'reply'], ['auth']);
+$router->get('/admin/support-tickets', [SupportTicketController::class, 'adminList'], ['auth', 'role:admin,staff']);
+$router->put('/admin/support-tickets/{id}', [SupportTicketController::class, 'updateStatus'], ['auth', 'role:admin,staff']);
+
+// ============ PAYMENTS ============
+$router->post('/payments/momo/ipn', [PaymentController::class, 'momoIpn']);
+$router->get('/payments/momo/return', [PaymentController::class, 'momoReturn']);
+$router->get('/payments/vnpay/return', [PaymentController::class, 'vnpayReturn']);
+$router->post('/payments/vnpay/ipn', [PaymentController::class, 'vnpayIpn']);
+
+// ============ TICKET VERIFY ============
+$router->get('/tickets/verify', [TicketController::class, 'verify']);
+
+// ============ CRON ============
+$router->post('/cron/expire-bookings', [BookingController::class, 'expireBookings']);
+
+// ============ ENTERPRISE: LOGIN HISTORY ============
+$router->get('/login-history', [LoginHistoryController::class, 'myHistory'], ['auth']);
+$router->get('/admin/login-history', [LoginHistoryController::class, 'adminList'], ['auth', 'role:admin']);
+
+// ============ ENTERPRISE: BOOKING HOLDS ============
+$router->post('/booking-holds', [BookingHoldController::class, 'hold'], ['auth']);
+$router->delete('/booking-holds/{id}', [BookingHoldController::class, 'release'], ['auth']);
+$router->get('/booking-holds/my', [BookingHoldController::class, 'myHolds'], ['auth']);
+$router->post('/cron/expire-holds', [BookingHoldController::class, 'expireHolds']);
+
+// ============ ENTERPRISE: LOYALTY ============
+$router->get('/loyalty/balance', [LoyaltyController::class, 'balance'], ['auth']);
+$router->get('/loyalty/history', [LoyaltyController::class, 'history'], ['auth']);
+$router->get('/loyalty/tiers', [LoyaltyController::class, 'tiers']);
+$router->post('/admin/loyalty/bonus', [LoyaltyController::class, 'adminBonus'], ['auth', 'role:admin']);
+$router->post('/admin/loyalty/deduct', [LoyaltyController::class, 'adminDeduct'], ['auth', 'role:admin']);

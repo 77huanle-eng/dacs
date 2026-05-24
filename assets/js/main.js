@@ -3,9 +3,11 @@ import { pushNotice } from "./core/ui.js";
 import { initPublicDomain } from "./domains/public/index.js";
 import { initProviderDomain } from "./domains/provider/index.js";
 import { initAdminDomain } from "./domains/admin/index.js";
+import { initStaffDomain } from "./domains/staff/index.js";
 import { initGlobalEnhancers } from "./domains/shared/enhancers.js";
 import { clearSession, getAccessToken, getRefreshToken, isTokenExpired, setDevRole } from "./core/auth.js";
 import { refreshToken } from "./core/api.js";
+import { initAiChatWidget } from "./ai-chat-widget.js";
 
 function pathByBase(base, target) {
   const cleaned = target.replace(/^\.?\//, "");
@@ -32,6 +34,7 @@ async function restoreSessionIfNeeded() {
 function mountDomain(page, domain) {
   if (domain === "admin") return initAdminDomain(page);
   if (domain === "provider") return initProviderDomain(page);
+  if (domain === "staff") return initStaffDomain(page);
   return initPublicDomain(page);
 }
 
@@ -103,3 +106,4 @@ async function bootstrap() {
 }
 
 bootstrap();
+initAiChatWidget();

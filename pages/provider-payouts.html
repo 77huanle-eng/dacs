@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thu nhÃ¡ÂºÂ­p cÃ¡Â»Â§a tÃƒÂ´i - Viet Horizon Travel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="../assets/css/style.css" rel="stylesheet" />
+  <link href="../assets/css/admin-dashboard.css" rel="stylesheet" />
+  <link href="../assets/css/ai-chat.css" rel="stylesheet" />
+</head>
+<body data-page="provider-payouts" data-base="..">
+  <div class="dashboard-shell">
+    <aside class="dash-sidebar" id="sidebar"></aside>
+    <main class="dash-main">
+      <div class="dash-topbar d-flex justify-content-between align-items-center" id="topbar"></div>
+      <div id="page-provider-payouts">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <i class="bi bi-wallet2 fs-4 text-primary"></i>
+          <h4 class="mb-0">Thu nhÃ¡ÂºÂ­p cÃ¡Â»Â§a tÃƒÂ´i</h4>
+        </div>
+                <div class="panel-card p-3 mb-3">
+          <h6>Doanh thu chÃ¡Â»Â thanh toÃƒÂ¡n</h6>
+          <div class="display-6 fw-bold text-primary" id="pending-revenue">0 Ã¢â€šÂ«</div>
+        </div>
+        <div class="table-card">
+          <h6 class="mb-3">LÃ¡Â»â€¹ch sÃ¡Â»Â­ chi trÃ¡ÂºÂ£</h6>
+          <div class="data-table-wrap">
+            <table class="table table-striped"><thead><tr><th>ID</th><th>SÃ¡Â»â€˜ tiÃ¡Â»Ân</th><th>TrÃ¡ÂºÂ¡ng thÃƒÂ¡i</th><th>Ghi chÃƒÂº</th><th>NgÃƒÂ y tÃ¡ÂºÂ¡o</th></tr></thead><tbody id="my-payouts-tbody"></tbody></table>
+          </div>
+          <div class="smart-pagination" id="my-payouts-pagination"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -215,4 +215,9 @@ final class Request
     {
         return $this->attributes[$key] ?? $default;
     }
+
+    public function ip(): string
+    {
+        return (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
+    }
 }

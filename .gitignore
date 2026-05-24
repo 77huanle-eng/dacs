@@ -1,9 +1,27 @@
+# IDE & Editor
 .sixth/
 .vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 *.log
 Thumbs.db
+.DS_Store
 
+# Dependencies
+node_modules/
+vendor/
+
+# Environment
 backend/.env
 backend/.env.local
+
+# Storage & Uploads
 backend/storage/logs/*.log
 backend/public/uploads/
+
+# Build
+dist/
+build/

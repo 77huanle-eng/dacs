@@ -467,4 +467,53 @@ class AdminController extends Controller
         $this->admin->deleteComment($this->routeId($params));
         $this->ok(null, 'Xóa bình luận thành công.');
     }
+
+    // ============ REFUNDS ============
+    public function refunds(Request $request, array $params): void
+    {
+        $page = max(1, (int) ($request->query('page') ?? 1));
+        $limit = min(50, max(1, (int) ($request->query('limit') ?? 15)));
+        $this->ok($this->admin->refunds(['status' => $request->query('status')], $page, $limit));
+    }
+
+    public function refundDetail(Request $request, array $params): void
+    {
+        $this->ok($this->admin->refundDetail($this->routeId($params)));
+    }
+
+    public function approveRefund(Request $request, array $params): void
+    {
+        $this->ok($this->admin->approveRefund($this->routeId($params)), 'Đã duyệt hoàn tiền.');
+    }
+
+    public function processRefund(Request $request, array $params): void
+    {
+        $amount = (float) ($request->input('refund_amount') ?? 0);
+        $this->ok($this->admin->processRefund($this->routeId($params), $amount), 'Đã xử lý hoàn tiền.');
+    }
+
+    public function rejectRefund(Request $request, array $params): void
+    {
+        $reason = (string) ($request->input('reason') ?? '');
+        $this->ok($this->admin->rejectRefund($this->routeId($params), $reason), 'Đã từ chối hoàn tiền.');
+    }
+
+    // ============ CONTACTS ============
+    public function contacts(Request $request, array $params): void
+    {
+        $page = max(1, (int) ($request->query('page') ?? 1));
+        $limit = min(50, max(1, (int) ($request->query('limit') ?? 20)));
+        $contact = new \App\Models\Contact();
+        $this->ok($contact->paginate('SELECT * FROM contacts ORDER BY created_at DESC', [], $page, $limit));
+    }
+
+    public function updateContact(Request $request, array $params): void
+    {
+        $id = $this->routeId($params);
+        $data = $request->input();
+        $data['updated_at'] = date('Y-m-d H:i:s');
+        $contact = new \App\Models\Contact();
+        $contact->updateById($id, $data);
+        $this->ok($contact->find($id));
+    }
 }

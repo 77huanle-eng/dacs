@@ -56,7 +56,9 @@ export const DOMAIN_PAGES = {
     "provider-booking-detail",
     "provider-services",
     "provider-promotions",
-    "provider-feedback"
+    "provider-feedback",
+    "provider-payouts",
+    "provider-refunds"
   ]),
   admin: new Set([
     "admin-dashboard",
@@ -77,7 +79,19 @@ export const DOMAIN_PAGES = {
     "admin-promotion-edit",
     "admin-providers",
     "admin-comments",
-    "admin-stats"
+    "admin-stats",
+    "admin-audit-logs",
+    "admin-contacts",
+    "admin-departures",
+    "admin-payouts",
+    "admin-refunds",
+    "admin-support-tickets",
+    "admin-banners",
+    "admin-notifications",
+    "admin-login-history"
+  ]),
+  staff: new Set([
+    "staff-checkin"
   ])
 };
 
@@ -85,6 +99,7 @@ export const ROLES = {
   user: "user",
   provider: "provider",
   admin: "admin",
+  staff: "staff",
   guest: "guest"
 };
 

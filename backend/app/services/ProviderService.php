@@ -730,6 +730,49 @@ class ProviderService
 
         return $this->comments->paginate($sql, ['provider_id' => $providerId], $page, $limit);
     }
-}
 
+    public function deleteTourImage(int $providerId, int $tourId, int $imageId): void
+    {
+        $tour = $this->tours->find($tourId);
+        if (!$tour || (int) $tour['provider_id'] !== $providerId) {
+            throw new ApiException('Tour không tồn tại hoặc không phải của bạn.', 403);
+        }
+        $image = $this->tourImages->find($imageId);
+        if (!$image || (int) $image['tour_id'] !== $tourId) {
+            throw new ApiException('Ảnh không tồn tại.', 404);
+        }
+        $this->tourImages->deleteById($imageId);
+        // Delete physical file if exists
+        $path = $image['image_url'] ?? '';
+        if ($path && file_exists($path)) {
+            @unlink($path);
+        }
+    }
+
+    public function updateImageSortOrder(int $providerId, int $tourId, array $order): array
+    {
+        $tour = $this->tours->find($tourId);
+        if (!$tour || (int) $tour['provider_id'] !== $providerId) {
+            throw new ApiException('Tour không tồn tại hoặc không phải của bạn.', 403);
+        }
+        foreach ($order as $index => $imageId) {
+            $this->tourImages->updateById((int) $imageId, ['sort_order' => $index]);
+        }
+        return $this->tourImages->all(['tour_id' => $tourId], 'sort_order ASC');
+    }
+
+    public function refunds(int $providerId): array
+    {
+        $sql = 'SELECT r.*, b.booking_code, u.full_name as customer_name 
+                FROM refunds r
+                JOIN bookings b ON r.booking_id = b.id
+                JOIN tours t ON b.tour_id = t.id
+                LEFT JOIN users u ON r.user_id = u.id
+                WHERE t.provider_id = :pid
+                ORDER BY r.created_at DESC';
+        $stmt = Database::connection()->prepare($sql);
+        $stmt->execute(['pid' => $providerId]);
+        return $stmt->fetchAll() ?: [];
+    }
+}
 

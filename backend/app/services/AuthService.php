@@ -80,6 +80,13 @@ class AuthService
             ]);
 
             $this->db->commit();
+
+            try {
+                $mailService = new \App\Services\MailService();
+                $mailService->sendWelcomeEmail($email, trim((string) $payload['full_name']));
+            } catch (\Throwable $mailEx) {
+                error_log("[Mail Error] Failed to send welcome email: " . $mailEx->getMessage());
+            }
         } catch (\Throwable $e) {
             $this->db->rollBack();
             throw $e;
@@ -440,48 +447,30 @@ class AuthService
 
     private function sendResetPasswordEmail(string $email, string $fullName, string $token, int $expiresIn): bool
     {
-        $mailConfig = Config::get('app.mail', []);
-        $transport = strtolower(trim((string) ($mailConfig['transport'] ?? 'mail')));
-
-        if ($transport === 'log') {
-            $this->logMailFailure($email, 'Dat lai mat khau - Viet Horizon Travel', $this->buildResetLink($email, $token), 'preview-only');
-            return false;
-        }
-
-        $fromAddress = (string) ($mailConfig['from_address'] ?? 'no-reply@viethorizon.vn');
-        $fromName = (string) ($mailConfig['from_name'] ?? 'Viet Horizon Travel');
-
-        $smtpHost = trim((string) ($mailConfig['smtp_host'] ?? ''));
-        $smtpPort = (int) ($mailConfig['smtp_port'] ?? 25);
-
-        if ($smtpHost !== '') {
-            @ini_set('SMTP', $smtpHost);
-            if ($smtpPort > 0) {
-                @ini_set('smtp_port', (string) $smtpPort);
-            }
-            @ini_set('sendmail_from', $fromAddress);
-        }
-
-        $subject = 'Dat lai mat khau - Viet Horizon Travel';
-        $displayName = trim($fullName) !== '' ? trim($fullName) : 'Ban';
+        $displayName = trim($fullName) !== '' ? trim($fullName) : 'Bạn';
         $resetLink = $this->buildResetLink($email, $token);
 
-        $message = "Xin chao {$displayName},\n\n";
-        $message .= "Chung toi da nhan duoc yeu cau dat lai mat khau cho tai khoan cua ban.\n";
-        $message .= "Lien ket dat lai mat khau (hieu luc {$expiresIn} giay):\n{$resetLink}\n\n";
-        $message .= "Neu ban khong thuc hien yeu cau nay, vui long bo qua email nay.\n\n";
-        $message .= "Viet Horizon Travel";
+        $subject = 'Dat lai mat khau - Viet Horizon Travel';
+        $message = "Xin chào {$displayName},<br><br>"
+            . "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.<br>"
+            . "Vui lòng nhấp vào liên kết sau đây để đặt lại mật khẩu của bạn (có hiệu lực trong 60 phút):<br>"
+            . "<a href='{$resetLink}' style='display:inline-block;padding:10px 20px;background-color:#0d6efd;color:#fff;text-decoration:none;border-radius:5px;'>Đặt lại mật khẩu</a><br><br>"
+            . "Hoặc bạn có thể truy cập trực tiếp qua đường dẫn sau:<br>"
+            . "<a href='{$resetLink}'>{$resetLink}</a><br><br>"
+            . "Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.<br><br>"
+            . "Trân trọng,<br>"
+            . "Viet Horizon Travel";
 
-        $headers = [
-            'MIME-Version: 1.0',
-            'Content-Type: text/plain; charset=UTF-8',
-            'From: ' . $fromName . ' <' . $fromAddress . '>',
-            'Reply-To: ' . $fromAddress,
-        ];
+        try {
+            $mailService = new \App\Services\MailService();
+            $sent = $mailService->send($email, $subject, $message);
+        } catch (\Throwable $e) {
+            $sent = false;
+            error_log("[Mail Error] Reset password mail failed: " . $e->getMessage());
+        }
 
-        $sent = @mail($email, $subject, $message, implode("\r\n", $headers));
         if (!$sent) {
-            $this->logMailFailure($email, $subject, $resetLink, 'mail()-failed');
+            $this->logMailFailure($email, $subject, $resetLink, 'smtp-failed');
         }
 
         return $sent;

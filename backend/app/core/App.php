@@ -6,6 +6,7 @@ namespace App\Core;
 
 use App\Middlewares\AuthMiddleware;
 use App\Middlewares\RoleMiddleware;
+use App\Middlewares\RateLimitMiddleware;
 
 final class App
 {
@@ -26,6 +27,7 @@ final class App
         $this->router->setMiddlewareAliases([
             'auth' => AuthMiddleware::class,
             'role' => RoleMiddleware::class,
+            'throttle' => RateLimitMiddleware::class,
         ]);
 
         $router = $this->router;

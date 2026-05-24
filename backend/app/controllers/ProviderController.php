@@ -420,7 +420,31 @@ class ProviderController extends Controller
         return $providerId;
     }
 
+    public function deleteTourImage($request, $params): void
+    {
+        $providerId = $this->resolveProviderId($request);
+        $tourId = (int) ($params['id'] ?? 0);
+        $imageId = (int) ($params['imageId'] ?? 0);
+        $this->service->deleteTourImage($providerId, $tourId, $imageId);
+        $this->ok(null, 'Đã xóa ảnh.');
+    }
+
+    public function updateImageSort($request, $params): void
+    {
+        $providerId = $this->resolveProviderId($request);
+        $tourId = (int) ($params['id'] ?? 0);
+        $order = (array) ($request->input('order') ?? []);
+        if (empty($order)) {
+            throw new ApiException('Thiếu danh sách thứ tự (order[]).', 422);
+        }
+        $images = $this->service->updateImageSortOrder($providerId, $tourId, $order);
+        $this->ok($images, 'Cập nhật thứ tự ảnh thành công.');
+    }
+
+    public function refunds($request, $params): void
+    {
+        $providerId = $this->resolveProviderId($request);
+        $this->ok($this->service->refunds($providerId));
+    }
 }
-
-
 

@@ -4,6 +4,7 @@ import { getCurrentRole, isLoggedIn } from "./auth.js";
 export function resolveDomain(page) {
   if (DOMAIN_PAGES.admin.has(page) || page.startsWith("admin-")) return "admin";
   if (DOMAIN_PAGES.provider.has(page) || page.startsWith("provider-")) return "provider";
+  if (DOMAIN_PAGES.staff && DOMAIN_PAGES.staff.has(page) || page.startsWith("staff-")) return "staff";
   return "public";
 }
 

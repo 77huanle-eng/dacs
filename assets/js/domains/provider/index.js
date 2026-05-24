@@ -6,6 +6,7 @@ import { initDashboardModule } from "../shared/dashboard.js";
 import { initAdminActionsModule } from "../shared/admin-actions.js";
 import { initProfileModule } from "../shared/profile.js";
 import { initStorageCleanupModule } from "../shared/storage-cleanup.js";
+import { initProviderExtendedModules } from "./extended-modules.js";
 
 export function initProviderDomain(page) {
   if (!DOMAIN_PAGES.provider.has(page)) return false;
@@ -15,6 +16,7 @@ export function initProviderDomain(page) {
   initDashboardModule();
   initAdminActionsModule();
   initProfileModule();
+  initProviderExtendedModules();
   initLegacyApp();
   return true;
 }

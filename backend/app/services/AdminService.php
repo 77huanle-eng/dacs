@@ -586,8 +586,56 @@ class AdminService
             return $payment;
         }
 
-        $data['updated_at'] = date('Y-m-d H:i:s');
-        $this->payments->updateById($id, $data);
+        $now = date('Y-m-d H:i:s');
+        $data['updated_at'] = $now;
+
+        $this->db->beginTransaction();
+        try {
+            $this->payments->updateById($id, $data);
+
+            if (isset($data['payment_status'])) {
+                $bookingId = (int) $payment['booking_id'];
+                
+                $bookingStatus = 'pending';
+                if ($data['payment_status'] === 'paid') {
+                    $bookingStatus = 'confirmed';
+
+                    try {
+                        $mailService = new \App\Services\MailService();
+                        $booking = $this->bookings->find($bookingId);
+                        if ($booking && !empty($booking['contact_email'])) {
+                            $mailService->sendPaymentConfirmation($booking['contact_email'], $booking);
+                        }
+                    } catch (\Throwable $mailEx) {
+                        error_log("[Mail Error] Failed to send payment confirmation: " . $mailEx->getMessage());
+                    }
+                } elseif ($data['payment_status'] === 'failed') {
+                    $bookingStatus = 'cancelled';
+                } elseif ($data['payment_status'] === 'refunded') {
+                    $bookingStatus = 'refunded';
+                }
+
+                $this->bookings->updateById($bookingId, [
+                    'payment_status' => $data['payment_status'],
+                    'booking_status' => $bookingStatus,
+                    'updated_at' => $now,
+                ]);
+
+                $invoice = $this->invoices->firstBy(['booking_id' => $bookingId]);
+                if ($invoice) {
+                    $this->invoices->updateById((int) $invoice['id'], [
+                        'payment_status' => $data['payment_status'],
+                        'issued_at' => $data['payment_status'] === 'paid' ? $now : $invoice['issued_at'],
+                        'updated_at' => $now,
+                    ]);
+                }
+            }
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
 
         return $this->payments->find($id) ?? [];
     }
@@ -1094,5 +1142,60 @@ class AdminService
         ]);
 
         return $this->providerRequests->find($requestId) ?? [];
+    }
+
+    // ============ REFUND MANAGEMENT ============
+
+    public function refunds(array $filters, int $page, int $limit): array
+    {
+        $sql = 'SELECT r.*, b.booking_code, u.full_name FROM refunds r '
+             . 'LEFT JOIN bookings b ON r.booking_id = b.id '
+             . 'LEFT JOIN users u ON r.user_id = u.id';
+        $binds = [];
+        if (!empty($filters['status'])) {
+            $sql .= ' WHERE r.status = :s';
+            $binds['s'] = $filters['status'];
+        }
+        $sql .= ' ORDER BY r.created_at DESC';
+        $refund = new \App\Models\Refund();
+        return $refund->paginate($sql, $binds, $page, $limit);
+    }
+
+    public function refundDetail(int $id): array
+    {
+        $refund = new \App\Models\Refund();
+        $row = $refund->find($id);
+        if (!$row) throw new ApiException('Không tìm thấy yêu cầu hoàn tiền.', 404);
+        return $row;
+    }
+
+    public function approveRefund(int $id): array
+    {
+        $refund = new \App\Models\Refund();
+        $refund->updateById($id, ['status' => 'approved', 'updated_at' => date('Y-m-d H:i:s')]);
+        return $refund->find($id);
+    }
+
+    public function processRefund(int $id, float $amount): array
+    {
+        $refund = new \App\Models\Refund();
+        $refund->updateById($id, [
+            'status' => 'processed',
+            'refund_amount' => $amount,
+            'processed_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+        return $refund->find($id);
+    }
+
+    public function rejectRefund(int $id, string $reason): array
+    {
+        $refund = new \App\Models\Refund();
+        $refund->updateById($id, [
+            'status' => 'rejected',
+            'admin_note' => $reason,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+        return $refund->find($id);
     }
 }

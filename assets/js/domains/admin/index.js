@@ -5,6 +5,9 @@ import { initProviderRequestsModule } from "../shared/provider-requests.js";
 import { initDashboardModule } from "../shared/dashboard.js";
 import { initAdminActionsModule } from "../shared/admin-actions.js";
 import { initStorageCleanupModule } from "../shared/storage-cleanup.js";
+import { initExtendedModules } from "./extended-modules.js";
+import { initDashboardPage } from "./dashboard-page.js";
+import { initAdminPayments } from "./payments.js";
 
 export function initAdminDomain(page) {
   if (!DOMAIN_PAGES.admin.has(page)) return false;
@@ -13,6 +16,9 @@ export function initAdminDomain(page) {
   initProviderRequestsModule();
   initDashboardModule();
   initAdminActionsModule();
+  initExtendedModules();
+  initDashboardPage();
+  initAdminPayments();
   initLegacyApp();
   return true;
 }

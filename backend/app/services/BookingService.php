@@ -280,6 +280,17 @@ class BookingService
                 ]);
             }
 
+            if ($paymentStatus === 'paid') {
+                try {
+                    $mailService = new \App\Services\MailService();
+                    if (!empty($booking['contact_email'])) {
+                        $mailService->sendPaymentConfirmation($booking['contact_email'], $booking);
+                    }
+                } catch (\Throwable $mailEx) {
+                    error_log("[Mail Error] Failed to send payment confirmation: " . $mailEx->getMessage());
+                }
+            }
+
             $this->db->commit();
         } catch (\Throwable $e) {
             $this->db->rollBack();
@@ -386,6 +397,31 @@ class BookingService
         ]);
 
         return (int) ($stmt->fetch()['total'] ?? 0) > 0;
+    }
+
+    public function travelers(int $bookingId, int $userId): array
+    {
+        $booking = $this->bookings->find($bookingId);
+        if (!$booking) throw new ApiException('Booking không tồn tại.', 404);
+        if ((int) $booking['user_id'] !== $userId) throw new ApiException('Không có quyền.', 403);
+        $stmt = $this->db->prepare('SELECT * FROM booking_travelers WHERE booking_id = :bid ORDER BY id');
+        $stmt->execute(['bid' => $bookingId]);
+        return $stmt->fetchAll() ?: [];
+    }
+
+    public function expirePendingBookings(): array
+    {
+        $cutoff = date('Y-m-d H:i:s', strtotime('-48 hours'));
+        $stmt = $this->db->prepare("UPDATE bookings SET status = 'expired', updated_at = NOW() WHERE status = 'pending' AND created_at < :cutoff");
+        $stmt->execute(['cutoff' => $cutoff]);
+        return ['expired_count' => $stmt->rowCount()];
+    }
+
+    public function autoCompleteBookings(): array
+    {
+        $stmt = $this->db->prepare("UPDATE bookings SET status = 'completed', updated_at = NOW() WHERE status = 'confirmed' AND EXISTS (SELECT 1 FROM departures d WHERE d.id = bookings.departure_id AND d.return_date < CURDATE())");
+        $stmt->execute();
+        return ['completed_count' => $stmt->rowCount()];
     }
 }
 

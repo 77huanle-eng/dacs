@@ -79,4 +79,25 @@ class BookingController extends Controller
         $data = $this->bookingService->payment($this->routeId($params), $this->authUserId($request), $payload);
         $this->ok($data, 'Thanh toán booking thành công.');
     }
+
+    public function travelers(Request $request, array $params): void
+    {
+        $data = $this->bookingService->travelers($this->routeId($params), $this->authUserId($request));
+        $this->ok($data);
+    }
+
+    public function expireBookings(Request $request, array $params): void
+    {
+        $cronSecret = (string) (\App\Core\Config::get('app.cron_secret', ''));
+        $provided   = (string) ($request->query('secret') ?? $request->header('X-Cron-Secret') ?? '');
+        if ($cronSecret !== '' && $provided !== $cronSecret) {
+            throw new \App\Core\ApiException('Unauthorized cron call.', 403);
+        }
+        $expireResult   = $this->bookingService->expirePendingBookings();
+        $completeResult = $this->bookingService->autoCompleteBookings();
+        $this->ok([
+            'expired_count' => $expireResult['expired_count'] ?? 0,
+            'completed_count' => $completeResult['completed_count'] ?? 0,
+        ]);
+    }
 }

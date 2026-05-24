@@ -39,6 +39,17 @@ class ContactController extends Controller
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
+        try {
+            $mailService = new \App\Services\MailService();
+            $mailService->sendContactConfirmation(
+                strtolower(trim((string) $payload['email'])),
+                $payload['full_name'],
+                $payload['subject']
+            );
+        } catch (\Throwable $mailEx) {
+            error_log("[Mail Error] Failed to send contact confirmation: " . $mailEx->getMessage());
+        }
+
         $this->created($this->contacts->find($id), 'Đã gửi liên hệ hỗ trợ thành công.');
     }
 
@@ -72,6 +83,13 @@ class ContactController extends Controller
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
+
+        try {
+            $mailService = new \App\Services\MailService();
+            $mailService->sendSubscribeConfirmation($email, trim((string) ($payload['full_name'] ?? 'Khách hàng')));
+        } catch (\Throwable $mailEx) {
+            error_log("[Mail Error] Failed to send newsletter subscription confirmation: " . $mailEx->getMessage());
+        }
 
         $this->created($this->contacts->find($id), 'Đăng ký bản tin thành công.');
     }

@@ -2796,19 +2796,25 @@ export function initLegacyApp() {
       ]
     }));
 
-    adminRows.payments = payments.map((payment) => ({
-      search: `${payment.id} ${payment.bookingCode} ${payment.method}`,
-      attrs: { status: payment.status },
-      cells: [
-        payment.id,
-        payment.bookingCode,
-        payment.method,
-        vnd(payment.amount),
-        dateVN(payment.paidAt),
-        statusBadge(payment.status),
-        `<div class="table-actions d-flex gap-1"><button class="btn btn-sm btn-outline-danger" data-action="admin-payment-mark-failed" data-payment-id="${payment.id}">Rà soát</button></div>`
-      ]
-    }));
+    adminRows.payments = payments.map((payment) => {
+      const isPaid = payment.status === "Đã thanh toán" || payment.status === "Thành công";
+      const actionHtml = isPaid
+        ? `<div class="table-actions d-flex gap-1"><button class="btn btn-sm btn-outline-danger" data-action="admin-payment-mark-failed" data-payment-id="${payment.id}">Rà soát</button></div>`
+        : `<div class="table-actions d-flex gap-1"><button class="btn btn-sm btn-outline-success" data-action="admin-payment-approve" data-payment-id="${payment.id}">Duyệt</button><button class="btn btn-sm btn-outline-danger" data-action="admin-payment-reject" data-payment-id="${payment.id}">Từ chối</button></div>`;
+      return {
+        search: `${payment.id} ${payment.bookingCode} ${payment.method}`,
+        attrs: { status: payment.status },
+        cells: [
+          payment.id,
+          payment.bookingCode,
+          payment.method,
+          vnd(payment.amount),
+          dateVN(payment.paidAt),
+          statusBadge(payment.status),
+          actionHtml
+        ]
+      };
+    });
 
     adminRows.invoices = invoices.map((invoice) => ({
       search: `${invoice.id} ${invoice.bookingCode}`,
@@ -6892,6 +6898,44 @@ export function initLegacyApp() {
           }
         } catch (error) {
           showToast(error?.message || "Không thể cập nhật giao dịch.", "danger");
+        }
+      }
+
+      if (action === "admin-payment-approve") {
+        const paymentId = Number(target.getAttribute("data-payment-id") || 0);
+        if (!paymentId) return;
+
+        try {
+          await apiPut(`/admin/payments/${paymentId}`, { payment_status: "paid" });
+          const payment = payments.find((item) => Number(item.id) === paymentId);
+          if (payment) payment.status = "Đã thanh toán";
+          refreshAdminRows();
+          showToast("Đã duyệt giao dịch thành công.", "success");
+          if (page === "admin-payments") {
+            renderCurrentPage();
+            initPageBehaviors();
+          }
+        } catch (error) {
+          showToast(error?.message || "Không thể duyệt giao dịch.", "danger");
+        }
+      }
+
+      if (action === "admin-payment-reject") {
+        const paymentId = Number(target.getAttribute("data-payment-id") || 0);
+        if (!paymentId) return;
+
+        try {
+          await apiPut(`/admin/payments/${paymentId}`, { payment_status: "failed" });
+          const payment = payments.find((item) => Number(item.id) === paymentId);
+          if (payment) payment.status = "Thất bại";
+          refreshAdminRows();
+          showToast("Đã từ chối giao dịch thanh toán.", "warning");
+          if (page === "admin-payments") {
+            renderCurrentPage();
+            initPageBehaviors();
+          }
+        } catch (error) {
+          showToast(error?.message || "Không thể từ chối giao dịch.", "danger");
         }
       }
 

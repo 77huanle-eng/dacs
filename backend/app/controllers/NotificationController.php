@@ -66,4 +66,43 @@ class NotificationController extends Controller
             'updated' => $stmt->rowCount(),
         ], 'Đã đánh dấu tất cả thông báo là đã đọc.');
     }
+
+    public function unreadCount(Request $request, array $params): void
+    {
+        $user = $this->authUser($request);
+        $stmt = Database::connection()->prepare('SELECT COUNT(*) AS count FROM notifications WHERE user_id = :uid AND is_read = 0');
+        $stmt->execute(['uid' => (int) $user['id']]);
+        $this->ok($stmt->fetch());
+    }
+
+    public function broadcast(Request $request, array $params): void
+    {
+        $payload = $request->input();
+        $title   = trim((string) ($payload['title'] ?? ''));
+        $content = trim((string) ($payload['content'] ?? ''));
+        $type    = (string) ($payload['type'] ?? 'admin_broadcast');
+        $userIds = $payload['user_ids'] ?? null;
+
+        if ($title === '' || $content === '') {
+            throw new ApiException('title và content là bắt buộc.', 422);
+        }
+
+        $db  = Database::connection();
+        $now = date('Y-m-d H:i:s');
+
+        if ($userIds === null) {
+            $stmt = $db->prepare('SELECT id FROM users WHERE status = "active"');
+            $stmt->execute();
+            $userIds = array_column($stmt->fetchAll(), 'id');
+        }
+
+        $insert = $db->prepare('INSERT INTO notifications (user_id, type, title, content, is_read, created_at) VALUES (:uid, :type, :title, :content, 0, :now)');
+        $count = 0;
+        foreach ($userIds as $uid) {
+            $insert->execute(['uid' => (int) $uid, 'type' => $type, 'title' => $title, 'content' => $content, 'now' => $now]);
+            $count++;
+        }
+
+        $this->ok(['sent_count' => $count], "Đã gửi thông báo cho {$count} người dùng.");
+    }
 }
